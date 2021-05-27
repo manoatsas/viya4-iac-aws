@@ -75,6 +75,9 @@ locals {
   kubeconfig_filename = "${var.prefix}-eks-kubeconfig.conf"
   kubeconfig_path     = var.iac_tooling == "docker" ? "/workspace/${local.kubeconfig_filename}" : local.kubeconfig_filename
   kubeconfig_ca_cert  = data.aws_eks_cluster.cluster.certificate_authority.0.data
+
+  k8s_service_account_namespace = "kube-system"
+  k8s_service_account_name      = "cluster-autoscaler-aws-cluster-autoscaler-chart"
 }
 
 data "external" "git_hash" {
@@ -376,7 +379,19 @@ module "eks" {
   write_kubeconfig                      = false
   subnets                               = module.vpc.private_subnets
   vpc_id                                = module.vpc.vpc_id
-  tags                                  = var.tags
+  tags                                  = merge(
+        {
+          "key"                 = "k8s.io/cluster-autoscaler/enabled"
+          "propagate_at_launch" = "false"
+          "value"               = "true"
+        },
+        {
+          "key"                 = "k8s.io/cluster-autoscaler/${local.cluster_name}"
+          "propagate_at_launch" = "false"
+          "value"               = "owned"
+        },
+    var.tags)
+  enable_irsa                           = true
 
   workers_group_defaults = {
     # tags = var.tags
