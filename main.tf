@@ -77,7 +77,7 @@ locals {
   kubeconfig_ca_cert  = data.aws_eks_cluster.cluster.certificate_authority.0.data
 
   k8s_service_account_namespace = "kube-system"
-  k8s_service_account_name      = "cluster-autoscaler-aws-cluster-autoscaler-chart"
+  k8s_service_account_name      = "cluster-autoscaler"
 }
 
 data "external" "git_hash" {

@@ -135,10 +135,11 @@ spec:
       annotations:
         prometheus.io/scrape: 'true'
         prometheus.io/port: '8085'
+        cluster-autoscaler.kubernetes.io/safe-to-evict: 'false'
     spec:
       serviceAccountName: cluster-autoscaler
       containers:
-        - image: k8s.gcr.io/autoscaling/cluster-autoscaler:v1.17.3
+        - image: k8s.gcr.io/autoscaling/cluster-autoscaler:v<1.19.n> #TODO: replace '<1.19.n>'' with semantic version release of cluster autoscaler here https://github.com/kubernetes/autoscaler/releases must match your K8s version. Refer to step 5 & 6 https://docs.aws.amazon.com/eks/latest/userguide/cluster-autoscaler.html#ca-deploy
           name: cluster-autoscaler
           resources:
             limits:
@@ -154,10 +155,9 @@ spec:
             - --cloud-provider=aws
             - --skip-nodes-with-local-storage=false
             - --expander=least-waste
-            - --node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,k8s.io/cluster-autoscaler/mnm-tst-eks
-          env:
-            - name: AWS_REGION
-              value: us-east-1
+            - --node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,k8s.io/cluster-autoscaler/<YOUR CLUSTER NAME> #TODO: replace <YOUR CLUSTER NAME> with your EKS cluster name
+            - --balance-similar-node-groups
+            - --skip-nodes-with-system-pods=false 
           volumeMounts:
             - name: ssl-certs
               mountPath: /etc/ssl/certs/ca-certificates.crt #/etc/ssl/certs/ca-bundle.crt for Amazon Linux Worker Nodes
